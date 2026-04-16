@@ -47,7 +47,7 @@ export const generateSummary = async (input, isImage = false, mimeType = "image/
       promptParts = [
         {
           inlineData: {
-            data: input, // Raw Base64 string (without the "data:image/..." prefix)
+            data: input, 
             mimeType: mimeType,
           },
         },
