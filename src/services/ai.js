@@ -38,7 +38,7 @@ export const fetchUrlContent = async (url) => {
 export const generateSummary = async (input, isImage = false, mimeType = "image/jpeg") => {
   try {
     // Using the stable production model name
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
     let promptParts = [];
 
