@@ -3,6 +3,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
+/**
+ * Fetches and cleans content from a URL using a CORS proxy.
+ */
 export const fetchUrlContent = async (url) => {
   try {
     const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
@@ -11,39 +14,76 @@ export const fetchUrlContent = async (url) => {
     if (!response.ok) throw new Error("Lumina could not access this site.");
     
     const html = await response.text(); 
-    
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     
-    // Cleanup as before
+    // Target main content areas to avoid ads/nav noise
     const mainContent = doc.querySelector('article') || doc.querySelector('main') || doc.body;
-    const noise = mainContent.querySelectorAll('script, style, nav, footer, header, aside');
+    const noise = mainContent.querySelectorAll('script, style, nav, footer, header, aside, .ads, #comments');
     noise.forEach(el => el.remove());
     
-    return mainContent.innerText.trim().substring(0, 10000);
+    return mainContent.innerText.trim().substring(0, 12000);
   } catch (error) {
     console.error("Scraping Error:", error);
-    throw new Error("Failed to fetch site content. Try a different URL like a Wikipedia page.");
+    throw new Error("Failed to fetch site content. Try a Wikipedia page or a blog post.");
   }
 };
 
-export const generateSummary = async (text) => {
+/**
+ * Core AI Engine: Handles Text, URLs, PDFs, and Images.
+ * @param {string} input - Raw text or Base64 image data.
+ * @param {boolean} isImage - Set to true if processing an image.
+ * @param {string} mimeType - The type of file (e.g., 'image/jpeg', 'image/png').
+ */
+export const generateSummary = async (input, isImage = false, mimeType = "image/jpeg") => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    // Using the stable production model name
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
     
-    const prompt = `
-      Context: You are Lumina Core, an academic AI.
-      Task: Summarize the following web content into exactly 5-10 high-impact revision bullet points.
-      Style: Professional, concise, and focused on core concepts.
-      
-      Content: ${text}
-    `;
+    let promptParts = [];
 
-    const result = await model.generateContent(prompt);
+    if (isImage) {
+      // MULTIMODAL PATH (Image Analysis)
+      promptParts = [
+        {
+          inlineData: {
+            data: input, // Raw Base64 string (without the "data:image/..." prefix)
+            mimeType: mimeType,
+          },
+        },
+        `Context: You are Lumina Vision, an academic assistant.
+         Task: Analyze this image. Extract key technical details, text, or concepts.
+         Format: Provide a structured summary with 5-8 revision-ready bullet points. 
+         Style: Educational and precise.`
+      ];
+    } else {
+      // TEXT PATH (PDF, URL, or Paste)
+      promptParts = [`
+        Context: You are Lumina Core, an academic AI.
+        Task: Summarize the following content into high-impact revision points.
+        Style: Use professional, concise language. Focus on definitions, core concepts, and key takeaways.
+        Format: Return exactly 5-10 bullet points.
+        
+        Content: ${input}
+      `];
+    }
+
+    // 
+    const result = await model.generateContent(promptParts);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+
+    if (!text) throw new Error("AI returned an empty response.");
+    return text;
+
   } catch (error) {
     console.error("AI Generation Error:", error);
-    throw new Error("Lumina Core failed to process the content. Please try again.");
+    
+    // Specific error handling for "Leaked Key" or "Rate Limit"
+    if (error.message.includes("403")) {
+      throw new Error("API Key security violation. Please check your environment variables.");
+    }
+    
+    throw new Error("Lumina Core failed to process the content. Please check your connection and try again.");
   }
 };

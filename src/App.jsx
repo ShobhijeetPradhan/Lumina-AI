@@ -22,6 +22,7 @@ import UploadPdf from './pages/UploadPdf';
 import PasteText from './pages/PasteText';
 import PasteLink from './pages/PasteLink';
 import History from './pages/History'; 
+import UploadImage from './pages/UploadImage'; // 1. Import the new Vision page
 
 function AppContent() {
   const { loading: appLoading, isExiting, isDark, toggleTheme } = useAppController();
@@ -34,7 +35,8 @@ function AppContent() {
         setView('dashboard');
       }
     } else {
-      const protectedViews = ['dashboard', 'upload-pdf', 'paste-text', 'paste-link', 'history'];
+      // 2. Added 'upload-image' to protected views
+      const protectedViews = ['dashboard', 'upload-pdf', 'paste-text', 'paste-link', 'history', 'upload-image'];
       if (protectedViews.includes(view)) {
         setView('home');
       }
@@ -94,6 +96,17 @@ function AppContent() {
     );
   }
 
+  // 3. Register the Upload Image view
+  if (view === 'upload-image') {
+    return (
+      <UploadImage 
+        user={user} 
+        onBack={() => setView('dashboard')} 
+        onLogout={handleLogout} 
+      />
+    );
+  }
+
   if (view === 'history') {
     return (
       <History 
@@ -112,6 +125,7 @@ function AppContent() {
         onUploadClick={() => setView('upload-pdf')}
         onPasteClick={() => setView('paste-text')}
         onLinkClick={() => setView('paste-link')}
+        onImageClick={() => setView('upload-image')} // 4. Pass the new handler
         onHistoryClick={() => setView('history')} 
       />
     );
