@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Dashboard = ({ user, onLogout, onUploadClick, onPasteClick, onLinkClick, onHistoryClick }) => {
+const Dashboard = ({ user, onLogout, onUploadClick, onPasteClick, onLinkClick, onImageClick, onHistoryClick }) => {
   const cards = [
     {
       id: 'text',
       title: "Paste Text",
-      description: "Paste your lecture notes or study material directly to get a quick summary.",
+      description: "Paste your lecture notes or study material directly for a quick summary.",
       icon: "✍️",
       color: "from-violet-500 to-purple-600",
       action: "Paste Content"
@@ -26,6 +26,15 @@ const Dashboard = ({ user, onLogout, onUploadClick, onPasteClick, onLinkClick, o
       icon: "🔗",
       color: "from-emerald-500 to-teal-500",
       action: "Submit Link"
+    },
+    // 1. Added the Lumina Vision Card
+    {
+      id: 'image',
+      title: "Lumina Vision",
+      description: "Upload a photo of your handwritten notes or diagrams for AI analysis.",
+      icon: "🖼️",
+      color: "from-rose-500 to-orange-500",
+      action: "Analyze Photo"
     }
   ];
 
@@ -69,7 +78,8 @@ const Dashboard = ({ user, onLogout, onUploadClick, onPasteClick, onLinkClick, o
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* 2. Updated grid-cols to handle 4 cards gracefully */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {cards.map((card, index) => (
             <motion.div
               key={card.id}
@@ -79,13 +89,13 @@ const Dashboard = ({ user, onLogout, onUploadClick, onPasteClick, onLinkClick, o
               className="group p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none hover:border-violet-500/50 transition-all duration-300 flex flex-col justify-between"
             >
               <div>
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.color} flex items-center justify-center text-3xl mb-8 shadow-lg shadow-violet-500/10 group-hover:scale-110 transition-transform`}>
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${card.color} flex items-center justify-center text-2xl mb-6 shadow-lg shadow-violet-500/10 group-hover:scale-110 transition-transform`}>
                   {card.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                   {card.title}
                 </h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-10">
+                <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-8">
                   {card.description}
                 </p>
               </div>
@@ -95,8 +105,9 @@ const Dashboard = ({ user, onLogout, onUploadClick, onPasteClick, onLinkClick, o
                   if (card.id === 'text') onPasteClick?.();
                   if (card.id === 'pdf') onUploadClick?.();
                   if (card.id === 'link') onLinkClick?.();
+                  if (card.id === 'image') onImageClick?.(); // 3. Added Image Click Handler
                 }}
-                className="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-black hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all text-sm cursor-pointer"
+                className="w-full py-3.5 rounded-2xl border-2 border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-black hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all text-xs cursor-pointer"
               >
                 {card.action}
               </button>
